@@ -1,0 +1,42 @@
+name: Build ESP32-S3 Firmware
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Скачивание кода
+        uses: actions/checkout@v4
+
+      - name: Установка Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Установка PlatformIO
+        run: pip install -U platformio
+
+      - name: Компиляция прошивки
+        run: pio run
+
+      - name: Склейка в единый файл для USB (merged)
+        run: |
+          python3 ~/.platformio/packages/tool-esptoolpy/esptool.py --chip esp32s3 merge_bin \
+            -o .pio/build/esp32-s3-devkitc-1/merged-firmware.bin \
+            --flash_mode qio --flash_freq 80m --flash_size 16MB \
+            0x0 .pio/build/esp32-s3-devkitc-1/bootloader.bin \
+            0x8000 .pio/build/esp32-s3-devkitc-1/partitions.bin \
+            0xe000 ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
+            0x10000 .pio/build/esp32-s3-devkitc-1/firmware.bin
+
+      - name: Сохранение файлов прошивки
+        uses: actions/upload-artifact@v4
+        with:
+          name: byrmalda-esp32s3
+          path: |
+            .pio/build/esp32-s3-devkitc-1/firmware.bin
+            .pio/build/esp32-s3-devkitc-1/merged-firmware.bin
