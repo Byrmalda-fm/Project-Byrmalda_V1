@@ -50,6 +50,11 @@
 #include <vector>
 #include <math.h>
 
+String portalPage();
+void portalRedirect();
+void portalSave();
+
+
 // ======================= НАСТРОЙКИ СБОРКИ =======================
 #define USE_ST7789 1        // 1 = ST7789, 0 = ILI9341 (320x240)
 #define TFT_W 240           // размер панели ST7789
